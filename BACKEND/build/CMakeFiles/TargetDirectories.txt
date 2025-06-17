@@ -1,0 +1,3 @@
+/Users/kei/Project/kei/BACKEND/build/CMakeFiles/ChatRoomServer.dir
+/Users/kei/Project/kei/BACKEND/build/CMakeFiles/edit_cache.dir
+/Users/kei/Project/kei/BACKEND/build/CMakeFiles/rebuild_cache.dir
