@@ -6,21 +6,29 @@
       <div class="p-6 border-b border-white/20">
         <!-- Debug info -->
         <div v-if="!isConnected"
-          class="mb-4 p-3 bg-yellow-100 border border-yellow-400 rounded-lg text-yellow-800 text-sm">
-          ⚠️ WebSocket not connected.
-          <div class="mt-2 text-xs">
-            This might be due to an expired token or connection issue.
-          </div>
-          <div class="mt-2 space-x-2">
-            <button @click="simpleRetry" class="px-2 py-1 bg-blue-200 rounded text-xs hover:bg-blue-300">
-              Simple Retry
-            </button>
-            <button @click="retryConnection" class="px-2 py-1 bg-yellow-200 rounded text-xs hover:bg-yellow-300">
-              Full Retry
-            </button>
-            <button @click="forceRelogin" class="px-2 py-1 bg-red-200 rounded text-xs hover:bg-red-300">
-              Force Re-login
-            </button>
+          class="mb-4 p-4 bg-yellow-50 border border-yellow-300 rounded-lg text-yellow-800 text-sm shadow-sm">
+          <div class="flex items-start space-x-2">
+            <span class="text-yellow-500 font-semibold">⚠️</span>
+            <div class="flex-1">
+              <div class="font-medium">WebSocket not connected</div>
+              <div class="mt-1 text-xs text-yellow-700">
+                This might be due to an expired token or connection issue.
+              </div>
+              <div class="mt-3 flex flex-wrap gap-2">
+                <button @click="simpleRetry"
+                  class="px-3 py-1.5 bg-blue-500 text-white rounded text-xs font-medium hover:bg-blue-600 transition-colors">
+                  Simple Retry
+                </button>
+                <button @click="retryConnection"
+                  class="px-3 py-1.5 bg-yellow-500 text-white rounded text-xs font-medium hover:bg-yellow-600 transition-colors">
+                  Full Retry
+                </button>
+                <button @click="forceRelogin"
+                  class="px-3 py-1.5 bg-red-500 text-white rounded text-xs font-medium hover:bg-red-600 transition-colors">
+                  Force Re-login
+                </button>
+              </div>
+            </div>
           </div>
         </div>
         <div class="flex items-center justify-between">
@@ -181,25 +189,27 @@
         <div v-if="currentMessages.length === 0" class="text-center py-12">
           <ChatBubbleLeftRightIcon class="h-16 w-16 text-gray-300 mx-auto mb-4" />
           <p class="text-gray-500">
-            {{ selectedUserId ? 'No messages yet. Start the conversation!' : 'No messages yet. Be the first to say hello!' }}
+            {{ emptyStateMessage }}
           </p>
         </div>
       </div>
 
       <!-- Message Input -->
       <div class="p-6 border-t border-white/20 bg-white/20">
-        <!-- Debug info -->
+        <!-- Connection warning -->
         <div v-if="!isConnected"
-          class="mb-4 p-3 bg-yellow-100 border border-yellow-400 rounded-lg text-yellow-800 text-sm">
-          ⚠️ WebSocket not connected.
-          <div class="mt-2 text-xs">
-            This might be due to an expired token or connection issue.
+          class="mb-4 p-3 bg-yellow-50 border border-yellow-300 rounded-lg text-yellow-800 text-sm shadow-sm">
+          <div class="flex items-center space-x-2">
+            <span class="text-yellow-500">⚠️</span>
+            <span class="font-medium">WebSocket not connected</span>
           </div>
-          <div class="mt-2 space-x-2">
-            <button @click="retryConnection" class="px-2 py-1 bg-yellow-200 rounded text-xs hover:bg-yellow-300">
+          <div class="mt-2 flex gap-2">
+            <button @click="retryConnection"
+              class="px-2 py-1 bg-yellow-500 text-white rounded text-xs font-medium hover:bg-yellow-600 transition-colors">
               Retry Connection
             </button>
-            <button @click="forceRelogin" class="px-2 py-1 bg-red-200 rounded text-xs hover:bg-red-300">
+            <button @click="forceRelogin"
+              class="px-2 py-1 bg-red-500 text-white rounded text-xs font-medium hover:bg-red-600 transition-colors">
               Force Re-login
             </button>
           </div>
@@ -275,6 +285,12 @@ const currentMessages = computed(() => {
     return chatStore.privateChat
   }
   return chatStore.filteredMessages
+})
+
+const emptyStateMessage = computed(() => {
+  return selectedUserId.value
+    ? 'No messages yet. Start the conversation!'
+    : 'No messages yet. Be the first to say hello!'
 })
 
 // Methods
@@ -477,8 +493,7 @@ onMounted(async () => {
 
   console.log('Current user:', currentUser.value)
 
-  // 暂时禁用WebSocket初始化来测试路由问题
-  /*
+  // Initialize WebSocket connection
   if (!isConnected.value && currentUser.value.token) {
     try {
       console.log('Initializing WebSocket connection in ChatView...')
@@ -490,7 +505,6 @@ onMounted(async () => {
       // 用户可能已经在使用应用，给他们机会重试
     }
   }
-  */
 
   scrollToBottom()
 })

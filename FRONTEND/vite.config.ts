@@ -26,8 +26,7 @@ export default defineConfig({
         target: 'http://localhost:8080',
         ws: true,
         changeOrigin: true,
-        secure: false,
-        rewrite: (path) => path.replace(/^\/ws/, '/ws')
+        secure: false
       }
     }
   }
