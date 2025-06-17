@@ -29,11 +29,16 @@ router.beforeEach((to, from, next) => {
   const authStore = useAuthStore()
   const isAuthenticated = authStore.checkAuth()
 
+  console.log('Route guard - to:', to.path, 'isAuthenticated:', isAuthenticated)
+
   if (to.meta.requiresAuth && !isAuthenticated) {
+    console.log('Redirecting to login - auth required but not authenticated')
     next('/login')
   } else if (to.meta.requiresGuest && isAuthenticated) {
+    console.log('Redirecting to chat - guest route but authenticated')
     next('/chat')
   } else {
+    console.log('Allowing navigation to:', to.path)
     next()
   }
 })

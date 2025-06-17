@@ -8,6 +8,19 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(PkgConfig REQUIRED)
 find_package(Threads REQUIRED)
 
+# 查找 nlohmann/json
+find_path(NLOHMANN_JSON_INCLUDE_DIR 
+    NAMES nlohmann/json.hpp
+    PATHS /opt/homebrew/include
+          /usr/local/include
+)
+
+if(NLOHMANN_JSON_INCLUDE_DIR)
+    message(STATUS "Found nlohmann/json headers: ${NLOHMANN_JSON_INCLUDE_DIR}")
+else()
+    message(FATAL_ERROR "nlohmann/json headers not found!")
+endif()
+
 # 尝试使用 pkg-config 查找 Crow，如果失败则手动查找
 pkg_check_modules(CROW QUIET crow)
 
@@ -35,6 +48,7 @@ find_package(OpenSSL REQUIRED)
 
 # 包含头文件目录
 include_directories(${CROW_INCLUDE_DIRS})
+include_directories(${NLOHMANN_JSON_INCLUDE_DIR})
 include_directories(include)
 include_directories(${OPENSSL_INCLUDE_DIR})
 

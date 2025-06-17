@@ -49,6 +49,8 @@ private:
     Database* db;
     std::unordered_map<crow::websocket::connection*, std::shared_ptr<ClientConnection>> clients;
     std::mutex clients_mutex;
+    std::unordered_map<std::string, int> token_to_user_id; // Token到用户ID的映射
+    std::mutex token_mutex;
     std::unordered_set<std::string> sensitiveWords;
     CorsConfig cors_config; // CORS配置
     

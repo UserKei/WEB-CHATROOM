@@ -45,7 +45,20 @@ export const useChatStore = defineStore('chat', () => {
 
   // Actions
   const initializeWebSocket = async (serverUrl: string, token: string) => {
+    // 如果已经连接，不要重复连接
+    if (isConnected.value) {
+      console.log('WebSocket already connected, skipping initialization')
+      return
+    }
+
+    // 如果正在连接中，也不要重复连接
+    if (wsManager.value) {
+      console.log('WebSocket manager already exists, skipping initialization')
+      return
+    }
+
     try {
+      console.log('Creating new WebSocket manager...')
       wsManager.value = new WebSocketManager(serverUrl)
 
       // Set up event listeners
@@ -211,7 +224,10 @@ export const useChatStore = defineStore('chat', () => {
 
     if (token && userData) {
       try {
-        currentUser.value = JSON.parse(userData)
+        const user = JSON.parse(userData)
+        // 确保用户对象包含token
+        currentUser.value = { ...user, token }
+        console.log('Loaded user from storage:', currentUser.value)
       } catch (error) {
         console.error('Failed to parse stored user data:', error)
         localStorage.removeItem('auth_token')

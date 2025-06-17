@@ -280,9 +280,21 @@ crow::response ChatServer::handleLogout(const crow::request& req) {
     crow::response res;
     
     try {
+        std::string authHeader = req.get_header_value("Authorization");
+        std::string token;
+        if (!authHeader.empty() && authHeader.find("Bearer ") == 0) {
+            token = authHeader.substr(7);
+        }
+        
         int userId = getUserIdFromToken(req);
         if (userId > 0) {
             db->updateUserStatus(userId, "offline");
+            
+            // 清理token
+            if (!token.empty()) {
+                std::lock_guard<std::mutex> lock(token_mutex);
+                token_to_user_id.erase(token);
+            }
         }
         
         res.code = 200;
@@ -761,13 +773,20 @@ std::string ChatServer::hashPassword(const std::string& password) {
 
 std::string ChatServer::generateToken(int userId, const std::string& username) {
     std::string data = std::to_string(userId) + ":" + username + ":" + std::to_string(time(nullptr));
-    return hashPassword(data).substr(0, 32);
+    std::string token = hashPassword(data).substr(0, 32);
+    
+    // 存储token到用户ID的映射
+    std::lock_guard<std::mutex> lock(token_mutex);
+    token_to_user_id[token] = userId;
+    
+    return token;
 }
 
 int ChatServer::validateToken(const std::string& token) {
-    // 简化版token验证 - 在生产环境中应该实现真正的验证逻辑
-    if (!token.empty() && token.length() == 32) {
-        return 1; // 返回有效的用户ID
+    std::lock_guard<std::mutex> lock(token_mutex);
+    auto it = token_to_user_id.find(token);
+    if (it != token_to_user_id.end()) {
+        return it->second;
     }
     return 0;
 }

@@ -270,10 +270,23 @@ const handleSubmit = async () => {
         password: form.value.password
       })
 
+      console.log('Login successful, user:', user, 'token:', token)
       chatStore.setCurrentUser({ ...user, token })
-      await chatStore.initializeWebSocket('/ws', token)
 
+      console.log('Navigating to chat immediately...')
+      // 先跳转到聊天页面，然后在背景初始化WebSocket
       router.push('/chat')
+
+      // 异步初始化WebSocket，不阻塞路由跳转
+      setTimeout(async () => {
+        try {
+          console.log('Initializing WebSocket in background...')
+          await chatStore.initializeWebSocket('/ws', token)
+          console.log('WebSocket initialized successfully')
+        } catch (error) {
+          console.error('WebSocket initialization failed:', error)
+        }
+      }, 100)
     } else {
       console.log('Attempting registration...')
       await authStore.register({
@@ -289,10 +302,23 @@ const handleSubmit = async () => {
         password: form.value.password
       })
 
+      console.log('Auto-login successful, user:', user, 'token:', token)
       chatStore.setCurrentUser({ ...user, token })
-      await chatStore.initializeWebSocket('/ws', token)
 
+      console.log('Navigating to chat after registration...')
+      // 先跳转到聊天页面，然后在背景初始化WebSocket
       router.push('/chat')
+
+      // 异步初始化WebSocket
+      setTimeout(async () => {
+        try {
+          console.log('Initializing WebSocket after registration...')
+          await chatStore.initializeWebSocket('/ws', token)
+          console.log('WebSocket initialized successfully after registration')
+        } catch (error) {
+          console.error('WebSocket initialization failed after registration:', error)
+        }
+      }, 100)
     }
   } catch (error) {
     console.error('Authentication error:', error)

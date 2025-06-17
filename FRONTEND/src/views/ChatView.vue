@@ -269,7 +269,7 @@ const messagesContainer = ref<HTMLElement>()
 const newMessage = ref('')
 const currentStatus = ref(chatStore.currentUser?.status || 'online')
 const showPrivateChats = ref(false)
-const typingTimer = ref<number>()
+const typingTimer = ref<NodeJS.Timeout>()
 
 const statusClasses = {
   online: 'status-online',
@@ -406,21 +406,31 @@ watch(() => currentMessages.value.length, () => {
 
 // Lifecycle
 onMounted(async () => {
+  // Load user data from storage if not already loaded
+  if (!currentUser.value) {
+    console.log('Loading user data from storage...')
+    chatStore.loadFromStorage()
+  }
+
   // Check if user is authenticated
   if (!currentUser.value) {
+    console.log('No current user found, redirecting to login')
     router.push('/login')
     return
   }
 
+  console.log('Current user:', currentUser.value)
+
   // Initialize WebSocket connection if not already connected
-  if (!isConnected.value) {
+  if (!isConnected.value && currentUser.value.token) {
     try {
+      console.log('Initializing WebSocket connection in ChatView...')
       await chatStore.initializeWebSocket('/ws', currentUser.value.token)
+      console.log('WebSocket connected successfully in ChatView')
     } catch (error) {
-      console.error('Failed to connect to chat server:', error)
-      // WebSocket连接失败，清理无效的认证信息
-      authStore.logout()
-      router.push('/login')
+      console.error('Failed to connect to chat server in ChatView:', error)
+      // WebSocket连接失败时显示错误，但不立即跳转到登录页面
+      // 用户可能已经在使用应用，给他们机会重试
     }
   }
 
