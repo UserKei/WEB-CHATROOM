@@ -784,11 +784,17 @@ std::string ChatServer::generateToken(int userId, const std::string& username) {
 
 int ChatServer::validateToken(const std::string& token) {
     std::lock_guard<std::mutex> lock(token_mutex);
+    CROW_LOG_INFO << "Validating token: " << token;
+    CROW_LOG_INFO << "Current token map size: " << token_to_user_id.size();
+    
     auto it = token_to_user_id.find(token);
     if (it != token_to_user_id.end()) {
+        CROW_LOG_INFO << "Token found, user ID: " << it->second;
         return it->second;
+    } else {
+        CROW_LOG_WARNING << "Token not found in map";
+        return 0;
     }
-    return 0;
 }
 
 int ChatServer::getUserIdFromToken(const crow::request& req) {

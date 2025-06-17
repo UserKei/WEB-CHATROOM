@@ -277,7 +277,7 @@ const handleSubmit = async () => {
       // 先跳转到聊天页面，然后在背景初始化WebSocket
       router.push('/chat')
 
-      // 异步初始化WebSocket，不阻塞路由跳转
+      // 延迟初始化WebSocket，不阻塞路由跳转
       setTimeout(async () => {
         try {
           console.log('Initializing WebSocket in background...')
@@ -285,8 +285,9 @@ const handleSubmit = async () => {
           console.log('WebSocket initialized successfully')
         } catch (error) {
           console.error('WebSocket initialization failed:', error)
+          // 不强制跳转，让用户手动重试
         }
-      }, 100)
+      }, 500) // 增加延迟时间
     } else {
       console.log('Attempting registration...')
       await authStore.register({
@@ -306,10 +307,11 @@ const handleSubmit = async () => {
       chatStore.setCurrentUser({ ...user, token })
 
       console.log('Navigating to chat after registration...')
-      // 先跳转到聊天页面，然后在背景初始化WebSocket
+      // 先跳转到聊天页面，暂时不初始化WebSocket
       router.push('/chat')
 
-      // 异步初始化WebSocket
+      // 暂时禁用WebSocket初始化来测试路由问题
+      /*
       setTimeout(async () => {
         try {
           console.log('Initializing WebSocket after registration...')
@@ -319,6 +321,7 @@ const handleSubmit = async () => {
           console.error('WebSocket initialization failed after registration:', error)
         }
       }, 100)
+      */
     }
   } catch (error) {
     console.error('Authentication error:', error)

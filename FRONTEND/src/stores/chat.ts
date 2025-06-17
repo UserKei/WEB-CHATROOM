@@ -46,15 +46,16 @@ export const useChatStore = defineStore('chat', () => {
   // Actions
   const initializeWebSocket = async (serverUrl: string, token: string) => {
     // 如果已经连接，不要重复连接
-    if (isConnected.value) {
+    if (isConnected.value && wsManager.value) {
       console.log('WebSocket already connected, skipping initialization')
       return
     }
 
-    // 如果正在连接中，也不要重复连接
+    // 如果WebSocket manager存在但未连接，先清理旧的连接
     if (wsManager.value) {
-      console.log('WebSocket manager already exists, skipping initialization')
-      return
+      console.log('Cleaning up existing WebSocket manager...')
+      wsManager.value.disconnect()
+      wsManager.value = null
     }
 
     try {
@@ -75,15 +76,23 @@ export const useChatStore = defineStore('chat', () => {
 
       wsManager.value.on('auth_success', (data: { userId: number, username: string }) => {
         console.log('WebSocket authentication successful:', data)
+        console.log('Setting isConnected to true')
         isConnected.value = true
       })
 
       wsManager.value.on('auth_error', (data: { error: string }) => {
         console.error('WebSocket authentication failed:', data.error)
-        // 认证失败时也清理状态
+        console.log('Setting isConnected to false due to auth error')
+        console.log('Clearing expired token - but NOT auto-redirecting')
+
+        // 认证失败时清理过期的token
         isConnected.value = false
-        authStore.logout()
-        window.location.href = '/login'
+        localStorage.removeItem('auth_token')
+        localStorage.removeItem('user_data')
+        currentUser.value = null
+
+        // 只清理状态，不强制跳转
+        // 让用户手动点击重新登录按钮
       })
 
       wsManager.value.on('message', (message: Message) => {
@@ -131,10 +140,9 @@ export const useChatStore = defineStore('chat', () => {
       })
 
       wsManager.value.on('connection_failed', () => {
+        console.error('WebSocket connection failed')
         isConnected.value = false
-        // 彻底清理认证状态并跳转登录
-        authStore.logout()
-        window.location.href = '/login'
+        // 连接失败时只设置状态，不强制跳转
       })
 
       await wsManager.value.connect(token)
@@ -142,16 +150,23 @@ export const useChatStore = defineStore('chat', () => {
     } catch (error) {
       console.error('Failed to initialize WebSocket:', error)
       isConnected.value = false
-      // 连接失败时清理状态
-      authStore.logout()
-      window.location.href = '/login'
+      // 连接失败时只记录错误，不强制跳转
       throw error
     }
   }
 
   const sendMessage = (content: string) => {
+    console.log('chatStore.sendMessage called with:', content)
+    console.log('wsManager.value:', wsManager.value)
+    console.log('content.trim():', content.trim())
+
     if (wsManager.value && content.trim()) {
+      console.log('Calling wsManager.sendChatMessage')
       wsManager.value.sendChatMessage(content.trim())
+    } else {
+      console.log('Cannot send message - wsManager or content issue')
+      console.log('wsManager.value exists:', !!wsManager.value)
+      console.log('content.trim() exists:', !!content.trim())
     }
   }
 
@@ -199,7 +214,16 @@ export const useChatStore = defineStore('chat', () => {
   }
 
   const logout = () => {
-    wsManager.value?.disconnect()
+    console.log('ChatStore logout called')
+
+    // 断开WebSocket连接
+    if (wsManager.value) {
+      console.log('Disconnecting WebSocket...')
+      wsManager.value.disconnect()
+      wsManager.value = null
+    }
+
+    // 清理状态
     currentUser.value = null
     users.value = []
     messages.value = []
@@ -208,6 +232,8 @@ export const useChatStore = defineStore('chat', () => {
     typingUsers.value = []
     isConnected.value = false
     selectedUserId.value = null
+
+    // 清理localStorage
     localStorage.removeItem('auth_token')
     localStorage.removeItem('user_data')
   }

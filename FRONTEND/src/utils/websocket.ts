@@ -91,7 +91,9 @@ export class WebSocketManager {
 
         this.ws.onmessage = (event) => {
           try {
+            console.log('WebSocket received message:', event.data)
             const message: WebSocketMessage = JSON.parse(event.data)
+            console.log('Parsed WebSocket message:', message)
             this.emit(message.type, message.data)
           } catch (error) {
             console.error('Failed to parse WebSocket message:', error)
@@ -131,13 +133,19 @@ export class WebSocketManager {
   }
 
   sendMessage(message: Partial<WebSocketMessage>) {
+    console.log('WebSocketManager.sendMessage called with:', message)
+    console.log('WebSocket state:', this.ws?.readyState)
+    console.log('WebSocket.OPEN:', WebSocket.OPEN)
+
     if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-      this.ws.send(JSON.stringify({
+      const fullMessage = {
         ...message,
         timestamp: new Date()
-      }))
+      };
+      console.log('Sending WebSocket message:', fullMessage)
+      this.ws.send(JSON.stringify(fullMessage))
     } else {
-      console.error('WebSocket is not connected')
+      console.error('WebSocket is not connected. State:', this.ws?.readyState)
     }
   }
 
@@ -170,6 +178,7 @@ export class WebSocketManager {
 
   // Chat-specific methods
   sendChatMessage(content: string) {
+    console.log('WebSocketManager.sendChatMessage called with:', content)
     this.sendMessage({
       type: 'message',
       data: { content }

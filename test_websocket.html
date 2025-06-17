@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>WebSocket Test</title>
+</head>
+<body>
+    <h1>WebSocket Connection Test</h1>
+    <div id="status">Connecting...</div>
+    <div id="messages"></div>
+    
+    <script>
+        const token = 'c11abbf7c95e72663aca4fb05f9e3e57';
+        const ws = new WebSocket('ws://localhost:8080/ws');
+        
+        ws.onopen = function() {
+            document.getElementById('status').innerHTML = 'Connected! Sending auth...';
+            console.log('WebSocket connected');
+            
+            // Send authentication
+            setTimeout(() => {
+                const authMessage = {
+                    type: 'auth',
+                    data: { token: token },
+                    timestamp: new Date()
+                };
+                ws.send(JSON.stringify(authMessage));
+                console.log('Sent auth message:', authMessage);
+            }, 100);
+        };
+        
+        ws.onmessage = function(event) {
+            console.log('Received message:', event.data);
+            const messages = document.getElementById('messages');
+            messages.innerHTML += '<div>' + event.data + '</div>';
+            
+            try {
+                const parsed = JSON.parse(event.data);
+                if (parsed.type === 'auth_success') {
+                    document.getElementById('status').innerHTML = 'Authenticated successfully!';
+                    
+                    // Test sending a chat message
+                    setTimeout(() => {
+                        const chatMessage = {
+                            type: 'message',
+                            data: { content: 'Hello from test!' },
+                            timestamp: new Date()
+                        };
+                        ws.send(JSON.stringify(chatMessage));
+                        console.log('Sent chat message:', chatMessage);
+                    }, 1000);
+                } else if (parsed.type === 'auth_error') {
+                    document.getElementById('status').innerHTML = 'Authentication failed: ' + parsed.data.error;
+                }
+            } catch (e) {
+                console.error('Failed to parse message:', e);
+            }
+        };
+        
+        ws.onerror = function(error) {
+            console.error('WebSocket error:', error);
+            document.getElementById('status').innerHTML = 'Error: ' + error;
+        };
+        
+        ws.onclose = function(event) {
+            console.log('WebSocket closed:', event);
+            document.getElementById('status').innerHTML = 'Disconnected';
+        };
+    </script>
+</body>
+</html>
