@@ -18,7 +18,7 @@ export const useAuthStore = defineStore('auth', () => {
   const loading = ref(false)
   const error = ref<string | null>(null)
 
-  const baseURL = 'http://localhost:8080/api'  // 直接调用后端API
+  const baseURL = '/api'  // 使用Vite代理
 
   const login = async (credentials: LoginCredentials) => {
     loading.value = true

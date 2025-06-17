@@ -415,7 +415,7 @@ onMounted(async () => {
   // Initialize WebSocket connection if not already connected
   if (!isConnected.value) {
     try {
-      await chatStore.initializeWebSocket('ws://localhost:8080/ws', currentUser.value.token)
+      await chatStore.initializeWebSocket('/ws', currentUser.value.token)
     } catch (error) {
       console.error('Failed to connect to chat server:', error)
       // WebSocket连接失败，清理无效的认证信息

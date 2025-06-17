@@ -42,12 +42,18 @@ export class WebSocketManager {
   connect(token: string): Promise<void> {
     return new Promise((resolve, reject) => {
       try {
-        // 构造WebSocket URL - 如果是相对路径，转换为ws://协议
+        // 构造WebSocket URL
         let wsUrl = this.url
         if (wsUrl.startsWith('/')) {
-          const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
-          const port = window.location.port || (window.location.protocol === 'https:' ? '443' : '80')
-          wsUrl = `${protocol}//${window.location.hostname}:${port}${wsUrl}`
+          // 在开发环境中，直接连接到后端服务器
+          if (import.meta.env.DEV) {
+            const protocol = 'ws:'
+            wsUrl = `${protocol}//localhost:8080${wsUrl}`
+          } else {
+            // 在生产环境中，使用相对路径
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
+            wsUrl = `${protocol}//${window.location.host}${wsUrl}`
+          }
         }
 
         console.log('Connecting to WebSocket:', wsUrl)

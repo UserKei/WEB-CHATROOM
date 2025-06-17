@@ -271,7 +271,7 @@ const handleSubmit = async () => {
       })
 
       chatStore.setCurrentUser({ ...user, token })
-      await chatStore.initializeWebSocket('ws://localhost:8080/ws', token)
+      await chatStore.initializeWebSocket('/ws', token)
 
       router.push('/chat')
     } else {
@@ -290,7 +290,7 @@ const handleSubmit = async () => {
       })
 
       chatStore.setCurrentUser({ ...user, token })
-      await chatStore.initializeWebSocket('ws://localhost:8080/ws', token)
+      await chatStore.initializeWebSocket('/ws', token)
 
       router.push('/chat')
     }
