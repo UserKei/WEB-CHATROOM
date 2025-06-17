@@ -1,24 +1,23 @@
-<script setup lang="ts">
-import { RouterLink, RouterView } from 'vue-router'
-import HelloWorld from './components/HelloWorld.vue'
-</script>
-
 <template>
-  <header>
-    <img alt="Vue logo" class="logo" src="@/assets/logo.svg" width="125" height="125" />
-
-    <div class="wrapper">
-      <HelloWorld msg="You did it!" />
-
-      <nav>
-        <RouterLink to="/">Home</RouterLink>
-        <RouterLink to="/about">About</RouterLink>
-      </nav>
-    </div>
-  </header>
-
   <RouterView />
 </template>
+
+<script setup lang="ts">
+import { RouterView } from 'vue-router'
+import { onMounted } from 'vue'
+import { useChatStore } from '@/stores/chat'
+
+const chatStore = useChatStore()
+
+onMounted(() => {
+  // Load user data from localStorage on app start
+  chatStore.loadFromStorage()
+})
+</script>
+
+<style>
+/* Global styles are handled by Tailwind CSS in main.css */
+</style>
 
 <style scoped>
 header {

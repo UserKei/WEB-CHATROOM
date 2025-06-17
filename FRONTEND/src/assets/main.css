@@ -1,35 +1,101 @@
-@import './base.css';
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
 
-#app {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  font-weight: normal;
-}
-
-a,
-.green {
-  text-decoration: none;
-  color: hsla(160, 100%, 37%, 1);
-  transition: 0.4s;
-  padding: 3px;
-}
-
-@media (hover: hover) {
-  a:hover {
-    background-color: hsla(160, 100%, 37%, 0.2);
+/* Apple-inspired custom styles */
+@layer base {
+  * {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
-}
 
-@media (min-width: 1024px) {
   body {
-    display: flex;
-    place-items: center;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Segoe UI', 'Roboto', sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+  }
+}
+
+@layer components {
+  /* Apple-style buttons */
+  .btn-apple {
+    @apply inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-xl shadow-sm transition-all duration-200 ease-in-out;
   }
 
-  #app {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    padding: 0 2rem;
+  .btn-primary {
+    @apply btn-apple text-white bg-apple-blue hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-apple-blue;
   }
+
+  .btn-secondary {
+    @apply btn-apple text-apple-blue bg-apple-gray-100 hover:bg-apple-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-apple-blue;
+  }
+
+  /* Telegram-style message bubbles */
+  .message-bubble {
+    @apply px-4 py-2 rounded-2xl max-w-xs lg:max-w-md shadow-sm;
+  }
+
+  .message-sent {
+    @apply message-bubble bg-telegram-blue text-white ml-auto;
+  }
+
+  .message-received {
+    @apply message-bubble bg-white text-gray-800 mr-auto;
+  }
+
+  /* Apple-style input fields */
+  .input-apple {
+    @apply w-full px-4 py-3 border border-apple-gray-300 rounded-xl shadow-sm placeholder-apple-gray-500 focus:outline-none focus:ring-2 focus:ring-apple-blue focus:border-transparent transition-all duration-200;
+  }
+
+  /* Glassmorphism effect */
+  .glass-effect {
+    @apply backdrop-blur-apple bg-white/30 border border-white/20;
+  }
+
+  /* Chat container */
+  .chat-container {
+    @apply h-screen bg-gradient-to-br from-blue-50 to-indigo-100;
+  }
+
+  /* Sidebar */
+  .sidebar {
+    @apply glass-effect border-r border-white/20;
+  }
+
+  /* User avatar */
+  .avatar {
+    @apply w-10 h-10 rounded-full bg-gradient-to-r from-blue-400 to-purple-500 flex items-center justify-center text-white font-semibold;
+  }
+
+  /* Online status indicator */
+  .status-online {
+    @apply w-3 h-3 bg-apple-green rounded-full border-2 border-white;
+  }
+
+  .status-busy {
+    @apply w-3 h-3 bg-apple-yellow rounded-full border-2 border-white;
+  }
+
+  .status-offline {
+    @apply w-3 h-3 bg-apple-gray-400 rounded-full border-2 border-white;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.3);
 }
