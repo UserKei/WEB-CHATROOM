@@ -25,7 +25,7 @@ export interface ChatRoom {
 }
 
 export interface WebSocketMessage {
-  type: 'user_joined' | 'user_left' | 'message' | 'private_message' | 'user_list' | 'status_change' | 'message_revoked' | 'typing' | 'block_user' | 'unblock_user'
+  type: 'auth' | 'auth_success' | 'auth_error' | 'user_joined' | 'user_left' | 'message' | 'private_message' | 'user_list' | 'status_change' | 'message_revoked' | 'typing' | 'block_user' | 'unblock_user'
   data: any
   timestamp: Date
 }
@@ -46,15 +46,41 @@ export class WebSocketManager {
         let wsUrl = this.url
         if (wsUrl.startsWith('/')) {
           const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
-          wsUrl = `${protocol}//${window.location.host}${wsUrl}`
+          const port = window.location.port || (window.location.protocol === 'https:' ? '443' : '80')
+          wsUrl = `${protocol}//${window.location.hostname}:${port}${wsUrl}`
         }
 
-        this.ws = new WebSocket(`${wsUrl}?token=${token}`)
+        console.log('Connecting to WebSocket:', wsUrl)
+        this.ws = new WebSocket(wsUrl)
+
+        // 设置一次性监听器来处理认证结果
+        const authSuccessHandler = (data: any) => {
+          console.log('Authentication successful:', data)
+          this.off('auth_success', authSuccessHandler)
+          this.off('auth_error', authErrorHandler)
+          resolve()
+        }
+
+        const authErrorHandler = (data: any) => {
+          console.error('Authentication failed:', data)
+          this.off('auth_success', authSuccessHandler)
+          this.off('auth_error', authErrorHandler)
+          reject(new Error(data.error || 'Authentication failed'))
+        }
+
+        this.on('auth_success', authSuccessHandler)
+        this.on('auth_error', authErrorHandler)
 
         this.ws.onopen = () => {
-          console.log('WebSocket connected')
+          console.log('WebSocket connected, sending auth...')
+          // 稍微延迟一下再发送认证消息，确保连接完全建立
+          setTimeout(() => {
+            this.sendMessage({
+              type: 'auth',
+              data: { token }
+            })
+          }, 100)
           this.reconnectAttempts = 0
-          resolve()
         }
 
         this.ws.onmessage = (event) => {

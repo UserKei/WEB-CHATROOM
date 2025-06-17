@@ -6,7 +6,7 @@ CXX_DEFINES =
 
 CXX_INCLUDES = -I/opt/homebrew/include -I/Users/kei/Project/kei/BACKEND/include -I/opt/homebrew/Cellar/openssl@3/3.5.0/include
 
-CXX_FLAGSarm64 = -O3 -DNDEBUG -std=gnu++17 -arch arm64
+CXX_FLAGSarm64 = -std=gnu++17 -arch arm64
 
-CXX_FLAGS = -O3 -DNDEBUG -std=gnu++17 -arch arm64
+CXX_FLAGS = -std=gnu++17 -arch arm64
 

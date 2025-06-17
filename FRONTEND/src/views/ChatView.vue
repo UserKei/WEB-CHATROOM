@@ -418,6 +418,8 @@ onMounted(async () => {
       await chatStore.initializeWebSocket('ws://localhost:8080/ws', currentUser.value.token)
     } catch (error) {
       console.error('Failed to connect to chat server:', error)
+      // WebSocket连接失败，清理无效的认证信息
+      authStore.logout()
       router.push('/login')
     }
   }

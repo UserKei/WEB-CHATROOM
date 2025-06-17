@@ -2,6 +2,7 @@
 #include <iostream>
 #include <algorithm>
 #include <nlohmann/json.hpp>
+#include <openssl/evp.h>
 #include <openssl/sha.h>
 #include <iomanip>
 #include <sstream>
@@ -25,41 +26,42 @@ ChatServer::~ChatServer() {
 }
 
 void ChatServer::setupRoutes() {
-    // 全局CORS设置 - 使用after_handle中间件
-    app.route_dynamic("/api").methods("OPTIONS"_method)
-    ([](const crow::request& req) {
-        crow::response res(200);
-        res.set_header("Access-Control-Allow-Origin", "*");
-        res.set_header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-        res.set_header("Access-Control-Allow-Headers", "Content-Type, Authorization");
-        res.set_header("Access-Control-Max-Age", "3600");
-        return res;
-    });
-    
-    app.route_dynamic("/api/auth/register").methods("OPTIONS"_method)
-    ([](const crow::request& req) {
-        crow::response res(200);
-        res.set_header("Access-Control-Allow-Origin", "*");
-        res.set_header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-        res.set_header("Access-Control-Allow-Headers", "Content-Type, Authorization");
-        res.set_header("Access-Control-Max-Age", "3600");
-        return res;
-    });
-    
-    app.route_dynamic("/api/auth/login").methods("OPTIONS"_method)
-    ([](const crow::request& req) {
-        crow::response res(200);
-        res.set_header("Access-Control-Allow-Origin", "*");
-        res.set_header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-        res.set_header("Access-Control-Allow-Headers", "Content-Type, Authorization");
-        res.set_header("Access-Control-Max-Age", "3600");
-        return res;
-    });
+    // 配置CORS中间件 - 这应该在所有路由之前
+    app.route_dynamic("/")
+        .methods("OPTIONS"_method)
+        ([this](const crow::request& req) {
+            crow::response res(204);
+            addCORSHeaders(res);
+            return res;
+        });
+
+    // 通用的OPTIONS处理器，处理所有/api/*路径
+    CROW_ROUTE(app, "/api/<path>")
+        .methods("OPTIONS"_method)
+        ([this](const crow::request& req, const std::string& path) {
+            crow::response res(204);
+            addCORSHeaders(res);
+            return res;
+        });
+
+    // WebSocket的OPTIONS处理
+    CROW_ROUTE(app, "/ws")
+        .methods("OPTIONS"_method)
+        ([this](const crow::request& req) {
+            crow::response res(204);
+            addCORSHeaders(res);
+            // WebSocket特定的头
+            res.add_header("Access-Control-Allow-Headers", 
+                "Content-Type, Sec-WebSocket-Protocol, Sec-WebSocket-Key, Sec-WebSocket-Version, Sec-WebSocket-Extensions, Authorization");
+            return res;
+        });
 
     // 主页
     CROW_ROUTE(app, "/")
     ([this](const crow::request& req) {
-        crow::response res(200, "text/html", R"(
+        crow::response res(200);
+        res.set_header("Content-Type", "text/html; charset=utf-8");
+        res.write(R"(
             <html>
             <head><title>Chat Room Server</title></head>
             <body>
@@ -138,12 +140,27 @@ void ChatServer::setupRoutes() {
 }
 
 void ChatServer::addCORSHeaders(crow::response& res) {
-    res.set_header("Access-Control-Allow-Origin", "*");
-    res.set_header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-    res.set_header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+    // 获取请求的Origin头
+    std::string origin = "*"; // 开发环境使用通配符
+    
+    // 在生产环境中，应该检查并只允许特定的源
+    // std::vector<std::string> allowedOrigins = {
+    //     "http://localhost:3000",
+    //     "http://localhost:5173",
+    //     "https://yourdomain.com"
+    // };
+    
+    res.add_header("Access-Control-Allow-Origin", origin);
+    res.add_header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, PATCH, OPTIONS");
+    res.add_header("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With, Accept, Origin");
+    res.add_header("Access-Control-Allow-Credentials", "true");
+    res.add_header("Access-Control-Max-Age", "86400");
+    res.add_header("Access-Control-Expose-Headers", "Content-Length, Content-Type");
 }
 
 crow::response ChatServer::handleRegister(const crow::request& req) {
+    crow::response res;
+    
     try {
         json body = json::parse(req.body);
         
@@ -153,17 +170,19 @@ crow::response ChatServer::handleRegister(const crow::request& req) {
         
         // 验证输入
         if (username.empty() || email.empty() || password.empty()) {
-            crow::response res(400);
-            addCORSHeaders(res);
+            res.code = 400;
+            res.set_header("Content-Type", "application/json");
             res.write(json{{"error", "All fields are required"}}.dump());
+            addCORSHeaders(res);
             return res;
         }
         
         // 检查用户名是否存在
         if (db->userExists(username)) {
-            crow::response res(409);
-            addCORSHeaders(res);
+            res.code = 409;
+            res.set_header("Content-Type", "application/json");
             res.write(json{{"error", "Username already exists"}}.dump());
+            addCORSHeaders(res);
             return res;
         }
         
@@ -172,30 +191,35 @@ crow::response ChatServer::handleRegister(const crow::request& req) {
         int userId = db->createUser(username, email, hashedPassword);
         
         if (userId > 0) {
-            crow::response res(201);
-            addCORSHeaders(res);
+            res.code = 201;
+            res.set_header("Content-Type", "application/json");
             res.write(json{
                 {"message", "User registered successfully"},
                 {"userId", userId}
             }.dump());
+            addCORSHeaders(res);
             return res;
         } else {
-            crow::response res(500);
-            addCORSHeaders(res);
+            res.code = 500;
+            res.set_header("Content-Type", "application/json");
             res.write(json{{"error", "Failed to create user"}}.dump());
+            addCORSHeaders(res);
             return res;
         }
         
     } catch (const std::exception& e) {
         CROW_LOG_ERROR << "Register error: " << e.what();
-        crow::response res(400);
-        addCORSHeaders(res);
+        res.code = 400;
+        res.set_header("Content-Type", "application/json");
         res.write(json{{"error", "Invalid JSON"}}.dump());
+        addCORSHeaders(res);
         return res;
     }
 }
 
 crow::response ChatServer::handleLogin(const crow::request& req) {
+    crow::response res;
+    
     try {
         json body = json::parse(req.body);
         
@@ -203,9 +227,10 @@ crow::response ChatServer::handleLogin(const crow::request& req) {
         std::string password = body["password"];
         
         if (username.empty() || password.empty()) {
-            crow::response res(400);
-            addCORSHeaders(res);
+            res.code = 400;
+            res.set_header("Content-Type", "application/json");
             res.write(json{{"error", "Username and password are required"}}.dump());
+            addCORSHeaders(res);
             return res;
         }
         
@@ -219,8 +244,8 @@ crow::response ChatServer::handleLogin(const crow::request& req) {
             // 更新用户状态为在线
             db->updateUserStatus(user.first, "online");
             
-            crow::response res(200);
-            addCORSHeaders(res);
+            res.code = 200;
+            res.set_header("Content-Type", "application/json");
             res.write(json{
                 {"message", "Login successful"},
                 {"user", {
@@ -231,55 +256,65 @@ crow::response ChatServer::handleLogin(const crow::request& req) {
                 }},
                 {"token", token}
             }.dump());
+            addCORSHeaders(res);
             return res;
         } else {
-            crow::response res(401);
-            addCORSHeaders(res);
+            res.code = 401;
+            res.set_header("Content-Type", "application/json");
             res.write(json{{"error", "Invalid username or password"}}.dump());
+            addCORSHeaders(res);
             return res;
         }
         
     } catch (const std::exception& e) {
         CROW_LOG_ERROR << "Login error: " << e.what();
-        crow::response res(400);
-        addCORSHeaders(res);
+        res.code = 400;
+        res.set_header("Content-Type", "application/json");
         res.write(json{{"error", "Invalid JSON"}}.dump());
+        addCORSHeaders(res);
         return res;
     }
 }
 
 crow::response ChatServer::handleLogout(const crow::request& req) {
+    crow::response res;
+    
     try {
         int userId = getUserIdFromToken(req);
         if (userId > 0) {
             db->updateUserStatus(userId, "offline");
         }
         
-        crow::response res(200);
-        addCORSHeaders(res);
+        res.code = 200;
+        res.set_header("Content-Type", "application/json");
         res.write(json{{"message", "Logout successful"}}.dump());
+        addCORSHeaders(res);
         return res;
         
     } catch (const std::exception& e) {
         CROW_LOG_ERROR << "Logout error: " << e.what();
-        crow::response res(500);
-        addCORSHeaders(res);
+        res.code = 500;
+        res.set_header("Content-Type", "application/json");
         res.write(json{{"error", "Logout failed"}}.dump());
+        addCORSHeaders(res);
         return res;
     }
 }
 
 crow::response ChatServer::handleGetMessages(const crow::request& req) {
+    crow::response res;
+    
     try {
         int userId = getUserIdFromToken(req);
         if (userId <= 0) {
-            crow::response res(401);
-            addCORSHeaders(res);
+            res.code = 401;
+            res.set_header("Content-Type", "application/json");
             res.write(json{{"error", "Unauthorized"}}.dump());
+            addCORSHeaders(res);
             return res;
         }
         
-        auto messages = db->getRecentMessages(3);
+        auto messages = db->getRecentMessages(50); // 获取最近50条消息
         
         json result = json::array();
         for (const auto& msg : messages) {
@@ -288,34 +323,39 @@ crow::response ChatServer::handleGetMessages(const crow::request& req) {
                 {"senderId", msg.sender_id},
                 {"senderName", msg.sender_username},
                 {"content", msg.content},
-                {"timestamp", ""},  // TODO: format timestamp
+                {"timestamp", ""},  // TODO: 添加时间戳字段到Message结构体
                 {"type", msg.message_type},
                 {"targetUserId", msg.receiver_id},
                 {"isRead", !msg.is_deleted}
             });
         }
         
-        crow::response res(200);
-        addCORSHeaders(res);
+        res.code = 200;
+        res.set_header("Content-Type", "application/json");
         res.write(json{{"messages", result}}.dump());
+        addCORSHeaders(res);
         return res;
         
     } catch (const std::exception& e) {
         CROW_LOG_ERROR << "Get messages error: " << e.what();
-        crow::response res(500);
-        addCORSHeaders(res);
+        res.code = 500;
+        res.set_header("Content-Type", "application/json");
         res.write(json{{"error", "Failed to get messages"}}.dump());
+        addCORSHeaders(res);
         return res;
     }
 }
 
 crow::response ChatServer::handleGetUsers(const crow::request& req) {
+    crow::response res;
+    
     try {
         int userId = getUserIdFromToken(req);
         if (userId <= 0) {
-            crow::response res(401);
-            addCORSHeaders(res);
+            res.code = 401;
+            res.set_header("Content-Type", "application/json");
             res.write(json{{"error", "Unauthorized"}}.dump());
+            addCORSHeaders(res);
             return res;
         }
         
@@ -330,16 +370,18 @@ crow::response ChatServer::handleGetUsers(const crow::request& req) {
             });
         }
         
-        crow::response res(200);
-        addCORSHeaders(res);
+        res.code = 200;
+        res.set_header("Content-Type", "application/json");
         res.write(json{{"users", result}}.dump());
+        addCORSHeaders(res);
         return res;
         
     } catch (const std::exception& e) {
         CROW_LOG_ERROR << "Get users error: " << e.what();
-        crow::response res(500);
-        addCORSHeaders(res);
+        res.code = 500;
+        res.set_header("Content-Type", "application/json");
         res.write(json{{"error", "Failed to get users"}}.dump());
+        addCORSHeaders(res);
         return res;
     }
 }
@@ -678,12 +720,38 @@ void ChatServer::sendUserList(std::shared_ptr<ClientConnection> client) {
 }
 
 std::string ChatServer::hashPassword(const std::string& password) {
+    // 使用 OpenSSL 3.0 的新 API
     unsigned char hash[SHA256_DIGEST_LENGTH];
-    SHA256_CTX sha256;
-    SHA256_Init(&sha256);
-    SHA256_Update(&sha256, password.c_str(), password.size());
-    SHA256_Final(hash, &sha256);
     
+    // OpenSSL 3.0 推荐使用 EVP 接口
+    EVP_MD_CTX* mdctx = EVP_MD_CTX_new();
+    if (mdctx == nullptr) {
+        CROW_LOG_ERROR << "Failed to create EVP_MD_CTX";
+        return "";
+    }
+    
+    if (EVP_DigestInit_ex(mdctx, EVP_sha256(), nullptr) != 1) {
+        EVP_MD_CTX_free(mdctx);
+        CROW_LOG_ERROR << "Failed to initialize digest";
+        return "";
+    }
+    
+    if (EVP_DigestUpdate(mdctx, password.c_str(), password.size()) != 1) {
+        EVP_MD_CTX_free(mdctx);
+        CROW_LOG_ERROR << "Failed to update digest";
+        return "";
+    }
+    
+    unsigned int len = 0;
+    if (EVP_DigestFinal_ex(mdctx, hash, &len) != 1) {
+        EVP_MD_CTX_free(mdctx);
+        CROW_LOG_ERROR << "Failed to finalize digest";
+        return "";
+    }
+    
+    EVP_MD_CTX_free(mdctx);
+    
+    // 转换为十六进制字符串
     std::stringstream ss;
     for (int i = 0; i < SHA256_DIGEST_LENGTH; i++) {
         ss << std::hex << std::setw(2) << std::setfill('0') << (int)hash[i];
@@ -697,8 +765,11 @@ std::string ChatServer::generateToken(int userId, const std::string& username) {
 }
 
 int ChatServer::validateToken(const std::string& token) {
-    // 简化版token验证
-    return 1; // 返回有效的用户ID
+    // 简化版token验证 - 在生产环境中应该实现真正的验证逻辑
+    if (!token.empty() && token.length() == 32) {
+        return 1; // 返回有效的用户ID
+    }
+    return 0;
 }
 
 int ChatServer::getUserIdFromToken(const crow::request& req) {
@@ -747,12 +818,12 @@ std::string ChatServer::getCurrentTimestamp() {
 void ChatServer::run(int port) {
     setupRoutes();
     
-    // 添加全局CORS支持
-    app.use_compression(crow::compression::algorithm::GZIP);
-    
     CROW_LOG_INFO << "Starting Chat Server on port " << port;
     CROW_LOG_INFO << "WebSocket endpoint: ws://localhost:" << port << "/ws";
     CROW_LOG_INFO << "API endpoints available";
+    CROW_LOG_INFO << "CORS enabled for all origins";
     
-    app.port(port).multithreaded().run();
+    app.port(port)
+       .multithreaded()
+       .run();
 }

@@ -797,6 +797,7 @@ CMakeFiles/ChatRoomServer.dir/src/chat_server.cpp.o: \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/unistd.h \
   /opt/homebrew/include/crow/http_parser_merged.h \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/assert.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/_assert.h \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/_static_assert.h \
   /opt/homebrew/include/crow/common.h \
   /opt/homebrew/include/crow/utility.h \
@@ -1403,6 +1404,7 @@ CMakeFiles/ChatRoomServer.dir/src/chat_server.cpp.o: \
   /opt/homebrew/include/crow/version.h /opt/homebrew/include/crow/app.h \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1/condition_variable \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1/__stop_token/stop_callback.h \
+  /opt/homebrew/include/crow/middlewares/cors.h \
   /opt/homebrew/include/nlohmann/json.hpp \
   /opt/homebrew/include/nlohmann/adl_serializer.hpp \
   /opt/homebrew/include/nlohmann/detail/abi_macros.hpp \
@@ -1450,14 +1452,36 @@ CMakeFiles/ChatRoomServer.dir/src/chat_server.cpp.o: \
   /opt/homebrew/include/nlohmann/ordered_map.hpp \
   /opt/homebrew/include/nlohmann/detail/macro_unscope.hpp \
   /opt/homebrew/include/nlohmann/thirdparty/hedley/hedley_undef.hpp \
-  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1/unordered_set \
-  /Users/kei/Project/kei/BACKEND/include/database.h \
-  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/sqlite3.h \
-  /opt/homebrew/include/openssl/sha.h \
+  /opt/homebrew/include/openssl/evp.h \
   /opt/homebrew/include/openssl/macros.h \
   /opt/homebrew/include/openssl/opensslconf.h \
   /opt/homebrew/include/openssl/configuration.h \
   /opt/homebrew/include/openssl/opensslv.h \
+  /opt/homebrew/include/openssl/types.h \
   /opt/homebrew/include/openssl/e_os2.h \
+  /opt/homebrew/include/openssl/safestack.h \
+  /opt/homebrew/include/openssl/stack.h \
+  /opt/homebrew/include/openssl/core.h \
+  /opt/homebrew/include/openssl/core_dispatch.h \
+  /opt/homebrew/include/openssl/indicator.h \
+  /opt/homebrew/include/openssl/params.h \
+  /opt/homebrew/include/openssl/bn.h \
+  /opt/homebrew/include/openssl/crypto.h \
+  /opt/homebrew/include/openssl/cryptoerr.h \
+  /opt/homebrew/include/openssl/symhacks.h \
+  /opt/homebrew/include/openssl/cryptoerr_legacy.h \
+  /opt/homebrew/include/openssl/bnerr.h \
+  /opt/homebrew/include/openssl/bio.h \
+  /opt/homebrew/include/openssl/bioerr.h \
+  /opt/homebrew/include/openssl/evperr.h \
+  /opt/homebrew/include/openssl/objects.h \
+  /opt/homebrew/include/openssl/obj_mac.h \
+  /opt/homebrew/include/openssl/asn1.h \
+  /opt/homebrew/include/openssl/asn1err.h \
+  /opt/homebrew/include/openssl/objectserr.h \
+  /opt/homebrew/include/openssl/sha.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1/unordered_set \
+  /Users/kei/Project/kei/BACKEND/include/database.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/sqlite3.h \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1/regex \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1/set

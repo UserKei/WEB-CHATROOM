@@ -18,7 +18,7 @@ export const useAuthStore = defineStore('auth', () => {
   const loading = ref(false)
   const error = ref<string | null>(null)
 
-  const baseURL = '/api'  // 使用相对路径，让Vite代理处理
+  const baseURL = 'http://localhost:8080/api'  // 直接调用后端API
 
   const login = async (credentials: LoginCredentials) => {
     loading.value = true
@@ -27,6 +27,10 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       const response = await axios.post(`${baseURL}/auth/login`, credentials)
       const { user, token } = response.data
+
+      // 存储认证信息到localStorage
+      localStorage.setItem('auth_token', token)
+      localStorage.setItem('user_data', JSON.stringify(user))
 
       isAuthenticated.value = true
       return { user, token }

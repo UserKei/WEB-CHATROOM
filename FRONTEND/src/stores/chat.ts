@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { WebSocketManager, type User, type Message } from '@/utils/websocket'
+import { useAuthStore } from '@/stores/auth'
 
 export interface AuthUser extends User {
   email: string
@@ -18,6 +19,7 @@ export const useChatStore = defineStore('chat', () => {
   const wsManager = ref<WebSocketManager | null>(null)
   const isConnected = ref(false)
   const selectedUserId = ref<number | null>(null) // For private chat
+  const authStore = useAuthStore()
 
   // Computed
   const onlineUsers = computed(() =>
@@ -56,6 +58,19 @@ export const useChatStore = defineStore('chat', () => {
       wsManager.value.on('user_left', (userId: number) => {
         users.value = users.value.filter(user => user.id !== userId)
         typingUsers.value = typingUsers.value.filter(id => id !== userId)
+      })
+
+      wsManager.value.on('auth_success', (data: { userId: number, username: string }) => {
+        console.log('WebSocket authentication successful:', data)
+        isConnected.value = true
+      })
+
+      wsManager.value.on('auth_error', (data: { error: string }) => {
+        console.error('WebSocket authentication failed:', data.error)
+        // 认证失败时也清理状态
+        isConnected.value = false
+        authStore.logout()
+        window.location.href = '/login'
       })
 
       wsManager.value.on('message', (message: Message) => {
@@ -104,12 +119,19 @@ export const useChatStore = defineStore('chat', () => {
 
       wsManager.value.on('connection_failed', () => {
         isConnected.value = false
+        // 彻底清理认证状态并跳转登录
+        authStore.logout()
+        window.location.href = '/login'
       })
 
       await wsManager.value.connect(token)
-      isConnected.value = true
+      // isConnected在auth_success事件中设置
     } catch (error) {
       console.error('Failed to initialize WebSocket:', error)
+      isConnected.value = false
+      // 连接失败时清理状态
+      authStore.logout()
+      window.location.href = '/login'
       throw error
     }
   }

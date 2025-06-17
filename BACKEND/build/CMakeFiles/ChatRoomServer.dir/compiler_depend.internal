@@ -11,6 +11,7 @@ CMakeFiles/ChatRoomServer.dir/src/chat_server.cpp.o
  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/__wctype.h
  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/__xlocale.h
  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/_abort.h
+ /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/_assert.h
  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/_bounds.h
  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/_ctermid.h
  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/_ctype.h
@@ -1400,6 +1401,7 @@ CMakeFiles/ChatRoomServer.dir/src/chat_server.cpp.o
  /opt/homebrew/include/crow/logging.h
  /opt/homebrew/include/crow/middleware.h
  /opt/homebrew/include/crow/middleware_context.h
+ /opt/homebrew/include/crow/middlewares/cors.h
  /opt/homebrew/include/crow/mime_types.h
  /opt/homebrew/include/crow/multipart.h
  /opt/homebrew/include/crow/multipart_view.h
@@ -2280,6 +2282,7 @@ CMakeFiles/ChatRoomServer.dir/src/main.cpp.o
  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/__wctype.h
  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/__xlocale.h
  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/_abort.h
+ /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/_assert.h
  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/_bounds.h
  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/_ctermid.h
  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/_ctype.h
@@ -3667,6 +3670,7 @@ CMakeFiles/ChatRoomServer.dir/src/main.cpp.o
  /opt/homebrew/include/crow/logging.h
  /opt/homebrew/include/crow/middleware.h
  /opt/homebrew/include/crow/middleware_context.h
+ /opt/homebrew/include/crow/middlewares/cors.h
  /opt/homebrew/include/crow/mime_types.h
  /opt/homebrew/include/crow/multipart.h
  /opt/homebrew/include/crow/multipart_view.h
